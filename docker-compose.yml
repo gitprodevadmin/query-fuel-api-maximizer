@@ -1,9 +1,19 @@
 version: "3.9"
 
 services:
-  postgres:
+  maximizer_backend:
+    build: .
+    container_name: maximizer_backend_container
+    ports:
+      - "${PORT}:3333"
+    volumes:
+      - ./:/app
+    depends_on:
+      - maximizer_postgres
+
+  maximizer_postgres:
     image: postgres:latest
-    container_name: postgres_container
+    container_name: maximizer_postgres_container
     restart: always
     env_file:
       - .env
@@ -16,9 +26,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  pgadmin:
+  maximizer_pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin_container
+    container_name: maximizer_pgadmin_container
     restart: always
     env_file:
       - .env
@@ -26,9 +36,9 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
     depends_on:
-      - postgres
+      - maximizer_postgres
 
 volumes:
   postgres_data:

@@ -43,7 +43,6 @@ export default class AdSeeder extends BaseSeeder {
                 console.log('⚠️ No ads found')
                 return
             }
-            console.log(ads, '****');
 
             for (const item of ads) {
                 await Ad.updateOrCreate(
