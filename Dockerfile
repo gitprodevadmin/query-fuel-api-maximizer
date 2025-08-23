@@ -1,9 +1,12 @@
-FROM node:23-alpine3.20
+FROM node:22-alpine3.20
 
 WORKDIR /app
 
 # Copy package files first
 COPY package*.json ./
+
+# Install dependencies and dev tools
+RUN npm install
 
 # Copy app files
 COPY . .
