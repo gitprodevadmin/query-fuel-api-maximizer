@@ -14,12 +14,20 @@ export default class AdSeeder extends BaseSeeder {
 
         let page = 1
         let allResults: any[] = []
+        let currentResult: any = await (await axios.get(`http://localhost:3333/api/ads`)).data.meta
 
         while (true) {
             const response = await axios.get(`${baseUrl}${endpoint}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { page, sort: '-createdTS' },
             })
+
+            const total = response.data.total
+            if (total === currentResult?.total) {
+                return allResults
+            }
+
+            await Ad.truncate(true)
 
             const results = response.data.results
             if (!results || results.length === 0) break
@@ -40,15 +48,14 @@ export default class AdSeeder extends BaseSeeder {
             const ads = await this.getData()
 
             if (ads.length === 0) {
-                console.log('⚠️ No ads found')
+                console.log('⚠️ No ads found or data already seeded')
                 return
             }
 
-            for (const item of ads) {
-                await Ad.updateOrCreate(
-                    { adId: item.id }, // lookup condition
+            await Ad.createMany(
+                ads.map((item) => (
                     {
-                        adId: item.id,
+                        adId: item.id as string,
                         provider: item.provider,
                         providerName: item.providerName,
                         externalId: item.externalID ?? null,
@@ -65,9 +72,9 @@ export default class AdSeeder extends BaseSeeder {
                         createdTs: item.createdTS,
                         lastSeenTs: item.lastSeenTS,
                     }
-                )
-            }
 
+                ))
+            )
 
             console.log(`✅ Seeded ${ads.length} ads`)
         } catch (error) {

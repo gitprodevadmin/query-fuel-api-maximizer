@@ -14,12 +14,20 @@ export default class AdAccountSeeder extends BaseSeeder {
 
         let page = 1
         let allResults: any[] = []
+        let currentResult: any = await (await axios.get(`http://localhost:3333/api/ad_accounts`)).data.meta
 
         while (true) {
             const response = await axios.get(`${baseUrl}${endpoint}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { page, sort: '-createdTS' },
             })
+
+            const total = response.data.total            
+            if (total === currentResult?.total) {
+                return allResults
+            }
+
+            await AdAccount.truncate(true)
 
             const results = response.data.results
             if (!results || results.length === 0) break
@@ -40,7 +48,7 @@ export default class AdAccountSeeder extends BaseSeeder {
             const adAccounts = await this.getData()
 
             if (adAccounts.length === 0) {
-                console.log('⚠️ No ad accounts found')
+                console.log('⚠️ No ad accounts found or data already seeded')
                 return
             }
 

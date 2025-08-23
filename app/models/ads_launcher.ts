@@ -1,12 +1,34 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 
+/**
+ * Helper: safely stringify values for Postgres JSON columns
+ */
+function prepareJSON(val: any) {
+  if (val === null || val === undefined) return null
+  if (typeof val === 'string') return val // already stringified
+  return JSON.stringify(val)              // stringify arrays/objects
+}
+
+/**
+ * Helper: safely parse values when consuming
+ */
+function consumeJSON(val: any) {
+  if (val === null) return null
+  try {
+    return typeof val === 'string' ? JSON.parse(val) : val
+  } catch {
+    return val
+  }
+}
+
 export default class AdsLauncher extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
   @column()
   declare adsLauncherId: string | null
+
   @column()
   declare name: string | null
 
@@ -16,12 +38,15 @@ export default class AdsLauncher extends BaseModel {
   @column()
   declare adAccountId: string | null
 
-  @column()
+  @column({
+    prepare: prepareJSON,
+    consume: consumeJSON,
+  })
   declare countries: string[] | null
 
   @column({
-    prepare: (val: string[]) => JSON.stringify(val),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare excludeCountries: string[] | null
 
@@ -44,27 +69,27 @@ export default class AdsLauncher extends BaseModel {
   declare segment: boolean | null
 
   @column({
-    prepare: (val: string[]) => JSON.stringify(val),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare keywords: string[] | null
 
   @column({
-    columnName: 'media_ids',   // 👈 matches your migration
-    prepare: (val: string[]) => JSON.stringify(val),
-    consume: (val: any) => (val),
+    columnName: 'media_ids',
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare mediaIDs: string[] | null
 
   @column({
-    prepare: (val: string[]) => JSON.stringify(val),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare titles: string[] | null
 
   @column({
-    prepare: (val: string[]) => JSON.stringify(val),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare bodies: string[] | null
 
@@ -74,23 +99,21 @@ export default class AdsLauncher extends BaseModel {
   @column()
   declare createdTs: number
 
-  // facebookData (nullable JSON)
   @column({
-    prepare: (val: any) => (val ? JSON.stringify(val) : null),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare facebookData: any | null
 
-  // pixel (JSON object)
   @column({
-    prepare: (val: any) => (val ? JSON.stringify(val) : null),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare pixel: any | null
 
   @column({
-    prepare: (val: string[]) => JSON.stringify(val),
-    consume: (val: any) => (val),
+    prepare: prepareJSON,
+    consume: consumeJSON,
   })
   declare campaignNames: string[] | null
 

@@ -11,15 +11,24 @@ export default class PresetAdsLauncherSeeder extends BaseSeeder {
     const baseUrl = env.get('MAXIMIZER_API_BASE_URL')
     const token = env.get('MAXIMIZER_API_TOKEN')
     const endpoint = '/presets/adlauncher'
+    const backendBaseUrl = env.get("BACKEND_BASE_URL")
 
     let page = 1
     let allResults: any[] = []
+    let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/preset_ad_launcher`)).data.meta
 
     while (true) {
       const response = await axios.get(`${baseUrl}${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { page, sort: '-createdTS' },
       })
+
+      const total = response.data.total
+      if (total === currentResult?.total) {
+        return allResults
+      }
+
+      await PresetAdsLauncher.truncate(true)
 
       const results = response.data.results
       if (!results || results.length === 0) break
@@ -40,7 +49,7 @@ export default class PresetAdsLauncherSeeder extends BaseSeeder {
       const launchers = await this.getData()
 
       if (launchers.length === 0) {
-        console.log('⚠️ No preset ads launchers found')
+        console.log('⚠️ No preset ads launchers found or data already seeded')
         return
       }
 

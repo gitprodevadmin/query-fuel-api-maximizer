@@ -11,16 +11,26 @@ export default class CountrySeeder extends BaseSeeder {
         const baseUrl = env.get('MAXIMIZER_API_BASE_URL') // e.g. https://rocket.maximizer.io/api/v1
         const token = env.get('MAXIMIZER_API_TOKEN')
         const endpoint = '/countries'
+        const backendBaseUrl = env.get("BACKEND_BASE_URL")
+
         const params = { filter: 'facebookKnown:eq:1' }
 
         let page = 1
         let allResults: any[] = []
+        let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/countries`)).data.meta
 
         while (true) {
             const response = await axios.get(`${baseUrl}${endpoint}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { ...params, page },
             })
+
+            const total = response.data.total
+            if (total === currentResult?.total) {
+                return allResults
+            }
+
+            await Country.truncate(true)
 
             const results = response.data.results
             if (!results || results.length === 0) break
@@ -41,7 +51,7 @@ export default class CountrySeeder extends BaseSeeder {
             const countries = await this.getData()
 
             if (countries.length === 0) {
-                console.log('⚠️ No countries found')
+                console.log('⚠️ No countries found or data already seeded')
                 return
             }
 

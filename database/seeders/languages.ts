@@ -11,10 +11,20 @@ export default class LanguageSeeder extends BaseSeeder {
         const baseUrl = env.get('MAXIMIZER_API_BASE_URL')
         const token = env.get('MAXIMIZER_API_TOKEN')
         const endpoint = '/languages'
+        const backendBaseUrl = env.get("BACKEND_BASE_URL")
+        let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/languages`)).data.meta
 
+        
         const response = await axios.get(`${baseUrl}${endpoint}`, {
             headers: { Authorization: `Bearer ${token}` },
         })
+        
+        const total = response.data.total
+        if (total === currentResult?.total) {
+            return []
+        }
+
+        await Language.truncate(true)
 
         return response.data.results || []
     }
@@ -28,7 +38,7 @@ export default class LanguageSeeder extends BaseSeeder {
             const languages = await this.getData()
 
             if (languages.length === 0) {
-                console.log('⚠️ No languages found')
+                console.log('⚠️ No languages found or data already seeded')
                 return
             }
 

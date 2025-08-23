@@ -12,9 +12,11 @@ export default class AdStatsSeeder extends BaseSeeder {
     const baseUrl = env.get('MAXIMIZER_API_BASE_URL')
     const endpoint = "/stats"
     const token = env.get('MAXIMIZER_API_TOKEN')
+    const backendBaseUrl = env.get("BACKEND_BASE_URL")
 
     let page = 1
     let allResults: any[] = []
+    let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/ad_stats`)).data.meta
 
     while (true) {
       const query = {
@@ -35,6 +37,15 @@ export default class AdStatsSeeder extends BaseSeeder {
         headers: { Authorization: `Bearer ${token}` },
         params: query,
       })
+
+      const total = response.data.total
+      console.log(total, currentResult?.total, '**');
+      
+      if (total === currentResult?.total) {
+        return allResults
+      }
+
+      await AdStats.truncate(true)
 
       const results = response.data.results
 
@@ -62,7 +73,7 @@ export default class AdStatsSeeder extends BaseSeeder {
         const data = await this.getData(dateStr)
 
         if (data.length === 0) {
-          console.log(`⚠️ No results for ${dateStr}, stopping.`)
+          console.log(`⚠️ No results for ${dateStr} or data already seeded, stopping.`)
           break
         }
 
