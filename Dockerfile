@@ -5,13 +5,10 @@ WORKDIR /app
 # Copy package files first
 COPY package*.json ./
 
-# Install dependencies and dev tools
-RUN npm install
-
 # Copy app files
 COPY . .
 
-# Make wait-for-mysql.sh executable
+# Make wait-for-postgres.sh executable
 COPY wait-for-postgres.sh .
 RUN chmod +x wait-for-postgres.sh
 
