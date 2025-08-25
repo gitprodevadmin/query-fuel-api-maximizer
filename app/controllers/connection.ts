@@ -1,7 +1,8 @@
 // app/Controllers/Http/CampaignsController.ts
-import QueryService from '#services/query_service'
+import QueryService from '#services/common/query_service'
 import type { HttpContext } from '@adonisjs/core/http'
 import Connections from '#models/connection'
+import ConnectionService from '#services/connection_service'
 
 export default class Connection {
   public async index({ request }: HttpContext) {
@@ -38,6 +39,11 @@ export default class Connection {
     }
 
     return connection
+  }
+
+  public async update({ response }: HttpContext) {
+    await (new ConnectionService).syncConnection()
+    return response.ok({ message: 'Connections synced successfully' })
   }
 
 }

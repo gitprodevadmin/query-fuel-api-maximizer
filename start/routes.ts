@@ -18,6 +18,7 @@ import "./routes/country.js"
 import "./routes/language.js"
 import "./routes/preset_country.js"
 import "./routes/connection.js"
+import "./routes/media.js"
 import AutoSwagger from 'adonis-autoswagger'
 import swaggerConfig from '#config/swagger'
 

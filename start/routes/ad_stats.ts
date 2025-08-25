@@ -3,4 +3,5 @@ const AdStatsController = () => import('#controllers/ad_stats')
 
 router.group(() => {
   router.resource('ad_stats', AdStatsController).apiOnly()
+  router.put('ad_stats/sync', [AdStatsController, 'update'])
 }).prefix('/api')

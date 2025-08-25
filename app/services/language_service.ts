@@ -1,12 +1,11 @@
-import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Language from '#models/language'
-import axios from 'axios'
 import env from '#start/env'
+import axios from "axios"
 
-export default class LanguageSeeder extends BaseSeeder {
+export default class LanguageService {
     /**
-     * Fetch data from external API
-     */
+         * Fetch data from external API
+         */
     private async getData() {
         const baseUrl = env.get('MAXIMIZER_API_BASE_URL')
         const token = env.get('MAXIMIZER_API_TOKEN')
@@ -14,11 +13,11 @@ export default class LanguageSeeder extends BaseSeeder {
         const backendBaseUrl = env.get("BACKEND_BASE_URL")
         let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/languages`)).data.meta
 
-        
+
         const response = await axios.get(`${baseUrl}${endpoint}`, {
             headers: { Authorization: `Bearer ${token}` },
         })
-        
+
         const total = response.data.total
         if (total === currentResult?.total) {
             return []
@@ -29,10 +28,7 @@ export default class LanguageSeeder extends BaseSeeder {
         return response.data.results || []
     }
 
-    /**
-     * Seeder entrypoint
-     */
-    public async run() {
+    public async syncLanguages() {
         try {
             console.log('⏳ Fetching languages...')
             const languages = await this.getData()

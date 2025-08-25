@@ -3,4 +3,5 @@ import router from '@adonisjs/core/services/router'
 
 router.group(() => {
   router.resource('ad_launchers', AdsLauncherController).apiOnly()
+  router.put('ad_launchers/sync', [AdsLauncherController, 'update'])
 }).prefix('/api')

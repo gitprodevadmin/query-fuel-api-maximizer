@@ -1,5 +1,6 @@
 import AdStats from '#models/ad_stat'
-import QueryService from '#services/query_service'
+import AdStatsService from '#services/ad_stats_service'
+import QueryService from '#services/common/query_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class AdStatsController {
@@ -34,5 +35,10 @@ export default class AdStatsController {
 
     if (!record) return response.status(404).json({ message: 'AdStat not found' })
     return record
+  }
+
+  public async update({ response }: HttpContext) {
+    await (new AdStatsService).syncAdStats()
+    return response.ok({ message: 'Ad stats synced successfully' })
   }
 }

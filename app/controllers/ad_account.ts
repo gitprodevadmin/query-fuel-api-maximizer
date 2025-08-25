@@ -1,6 +1,7 @@
 // app/Controllers/Http/CampaignsController.ts
 import AdAccount from '#models/ad_account'
-import QueryService from '#services/query_service'
+import AdAccountService from '#services/ad_account_service'
+import QueryService from '#services/common/query_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class AdAccountController {
@@ -40,4 +41,8 @@ export default class AdAccountController {
     return adAccount
   }
 
+  public async update({ response }: HttpContext) {
+    await (new AdAccountService).syncAdAccounts()
+    return response.ok({ message: 'Ad accounts synced successfully' })
+  }
 }

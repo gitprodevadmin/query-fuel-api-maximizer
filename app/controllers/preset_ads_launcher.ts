@@ -1,6 +1,7 @@
 // app/Controllers/Http/CampaignsController.ts
 import PresetAdsLauncher from '#models/preset_ads_launcher'
-import QueryService from '#services/query_service'
+import QueryService from '#services/common/query_service'
+import PresetAdLauncherService from '#services/preset_ad_launcher_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class PresetAdLauncherController {
@@ -38,6 +39,11 @@ export default class PresetAdLauncherController {
     }
 
     return presetLauncher
+  }
+
+  public async update({ response }: HttpContext) {
+    await (new PresetAdLauncherService).syncPresetAdLauncher()
+    return response.ok({ message: 'Preset ad launcher synced successfully' })
   }
 
 }

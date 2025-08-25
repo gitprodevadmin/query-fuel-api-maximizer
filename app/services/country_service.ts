@@ -1,0 +1,71 @@
+import Country from "#models/country"
+import env from '#start/env'
+import axios from "axios"
+
+
+export default class CountryService {
+    /**
+        * Fetch country data from external API (with pagination if available)
+        */
+    private async getData() {
+        const baseUrl = env.get('MAXIMIZER_API_BASE_URL') // e.g. https://rocket.maximizer.io/api/v1
+        const token = env.get('MAXIMIZER_API_TOKEN')
+        const endpoint = '/countries'
+        const backendBaseUrl = env.get("BACKEND_BASE_URL")
+
+        const params = { filter: 'facebookKnown:eq:1' }
+
+        let page = 1
+        let allResults: any[] = []
+        let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/countries`)).data.meta
+
+        while (true) {
+            const response = await axios.get(`${baseUrl}${endpoint}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { ...params, page },
+            })
+
+            const total = response.data.total
+            if (total === currentResult?.total) {
+                return allResults
+            }
+
+            await Country.truncate(true)
+
+            const results = response.data.results
+            if (!results || results.length === 0) break
+
+            allResults = allResults.concat(results)
+            page++
+        }
+
+        return allResults
+    }
+
+    public async syncCountries() {
+        try {
+            console.log('⏳ Fetching countries...')
+            const countries = await this.getData()
+
+            if (countries.length === 0) {
+                console.log('⚠️ No countries found or data already seeded')
+                return
+            }
+
+            await Country.createMany(
+                countries.map((item) => ({
+                    code: item.code,                       // "AF"
+                    name: item.name,                       // "Afghanistan"
+                    defaultLanguage: item.defaultLanguage, // can be null
+                    facebookKnown: item.facebookKnown,
+                    taboolaKnown: item.taboolaKnown,
+                    outbrainId: item.outbrainID,
+                }))
+            )
+
+            console.log(`✅ Seeded ${countries.length} countries`)
+        } catch (error) {
+            console.error('❌ Country seeder failed:', error.message || error)
+        }
+    }
+}

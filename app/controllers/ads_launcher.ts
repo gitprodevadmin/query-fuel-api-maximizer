@@ -1,5 +1,6 @@
 import AdsLauncher from '#models/ads_launcher'
-import QueryService from '#services/query_service'
+import AdLauncherService from '#services/ad_launcher_service'
+import QueryService from '#services/common/query_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class AdsLauncherController {
@@ -37,5 +38,10 @@ export default class AdsLauncherController {
     }
 
     return adLauncher
+  }
+
+  public async update({ response }: HttpContext) {
+    await (new AdLauncherService).syncAdLauncher()
+    return response.ok({ message: 'Ad launcher synced successfully' })
   }
 }

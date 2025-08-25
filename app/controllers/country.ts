@@ -1,6 +1,7 @@
 // app/Controllers/Http/CampaignsController.ts
 import Country from '#models/country'
-import QueryService from '#services/query_service'
+import QueryService from '#services/common/query_service'
+import CountryService from '#services/country_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class CountryController {
@@ -38,6 +39,11 @@ export default class CountryController {
     }
 
     return country
+  }
+
+  public async update({ response }: HttpContext) {
+    await (new CountryService).syncCountries()
+    return response.ok({ message: 'Countries synced successfully' })
   }
 
 }

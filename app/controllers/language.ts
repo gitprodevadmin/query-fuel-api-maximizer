@@ -1,5 +1,6 @@
 import Language from '#models/language'
-import QueryService from '#services/query_service'
+import QueryService from '#services/common/query_service'
+import LanguageService from '#services/language_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class LanguageController {
@@ -37,6 +38,11 @@ export default class LanguageController {
         }
 
         return language
+    }
+
+    public async update({ response }: HttpContext) {
+        await (new LanguageService).syncLanguages()
+        return response.ok({ message: 'Languages synced successfully' })
     }
 
 }

@@ -1,6 +1,7 @@
 // app/Controllers/Http/CampaignsController.ts
 import PresetCountry from '#models/preset_country'
-import QueryService from '#services/query_service'
+import QueryService from '#services/common/query_service'
+import PresetCountryService from '#services/preset_country_service'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class PresetCountryController {
@@ -38,6 +39,11 @@ export default class PresetCountryController {
     }
 
     return presetCountry
+  }
+
+  public async update({ response }: HttpContext) {
+    await (new PresetCountryService).syncCounrties()
+    return response.ok({ message: 'Countries synced successfully' })
   }
 
 }
