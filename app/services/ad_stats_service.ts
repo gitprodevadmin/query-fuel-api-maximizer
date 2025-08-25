@@ -1,21 +1,16 @@
 import AdStats from '#models/ad_stat'
 import env from '#start/env'
-import axios from "axios"
+import axios from 'axios'
 import { DateTime } from 'luxon'
 
 export default class AdStatsService {
-    /**
-       * Fetch data from external API for a given date
-       */
     private async getData(date: string) {
         const baseUrl = env.get('MAXIMIZER_API_BASE_URL')
-        const endpoint = "/stats"
+        const endpoint = '/stats'
         const token = env.get('MAXIMIZER_API_TOKEN')
-        const backendBaseUrl = env.get("BACKEND_BASE_URL")
 
         let page = 1
         let allResults: any[] = []
-        let currentResult: any = await (await axios.get(`${backendBaseUrl}/api/ad_stats`)).data.meta
 
         while (true) {
             const query = {
@@ -37,17 +32,7 @@ export default class AdStatsService {
                 params: query,
             })
 
-            const total = response.data.total
-            console.log(total, currentResult?.total, '**');
-
-            if (total === currentResult?.total) {
-                return allResults
-            }
-
-            await AdStats.truncate(true)
-
             const results = response.data.results
-
             if (!results || results.length === 0) break
 
             allResults = allResults.concat(results)
@@ -64,12 +49,24 @@ export default class AdStatsService {
 
             while (true) {
                 const dateStr = currentDate.toISODate()
-                console.log(`⏳ Fetching campaigns for ${dateStr}...`)
+                console.log(`⏳ Processing ${dateStr}...`)
 
+                // ✅ Step 1: check if this date already has records
+                const existingCount = await AdStats.query()
+                    .where('date', dateStr)
+                    .count('* as total')
+
+                if (Number(existingCount[0].$extras.total) > 0) {
+                    console.log(`⚠️ Data already exists for ${dateStr}, skipping API call`)
+                    // move backwards by 1 day
+                    currentDate = currentDate.minus({ days: 1 })
+                    continue
+                }
+
+                // ✅ Step 2: only call external API if no records exist
                 const data = await this.getData(dateStr)
-
                 if (data.length === 0) {
-                    console.log(`⚠️ No results for ${dateStr} or data already seeded, stopping.`)
+                    console.log(`⚠️ No results for ${dateStr}, stopping.`)
                     break
                 }
 
@@ -126,14 +123,14 @@ export default class AdStatsService {
                     }))
                 )
 
-                console.log(`✅ Seeded ${data.length} campaigns for ${dateStr}`)
+                console.log(`✅ Seeded ${data.length} new campaigns for ${dateStr}`)
                 totalSeeded += data.length
 
                 // move backwards by 1 day
                 currentDate = currentDate.minus({ days: 1 })
             }
 
-            console.log(`🎉 Done! Total campaigns seeded: ${totalSeeded}`)
+            console.log(`🎉 Done! Total new campaigns seeded: ${totalSeeded}`)
         } catch (error) {
             console.error('Seeder failed:', error)
         }
